@@ -13,6 +13,12 @@ public enum BattleState{ START, PLAYERTURN, ENEMYTURN, WON, LOST}
 
 public class BattleHandler : MonoBehaviour
 {
+    [Header("Action Button Visuals")]
+[SerializeField] private UnityEngine.UI.Button actionButtonImage; // Drag your Button component here
+[SerializeField] private Sprite attackSprite;                   // Your Attack graphic artwork
+[SerializeField] private Sprite defendSprite; 
+[SerializeField] private float parryWindowStartNormalized = 0.4f;
+[SerializeField] private float parryWindowEndNormalized = 0.55f;         
     [SerializeField] GameObject dodgePanel;
     [SerializeField] GameObject parryPanel;
     [SerializeField] RectTransform dodgePanelRect;
@@ -59,7 +65,9 @@ public class BattleHandler : MonoBehaviour
     public GameObject enemyGO; 
     private bool hasAttacked;
     public Transform enemyTransform;
-    
+    private int defenseOutcome = 0;
+    private float qteStartTime;
+    private const float QTE_TIME_WINDOW = 0.6f;
     
     
     //private bool hasDodged;
@@ -214,71 +222,74 @@ public class BattleHandler : MonoBehaviour
     }
     IEnumerator EnemyTurn()
     {
-        //hasDodged = false;
-        playerBufferInput = "";
+        
+
+    // Update the button graphic to your attack artwork
+    SetActionButtonSprite(defendSprite); 
+        
+        defenseOutcome = 0;
         isQTEActive = true;
-        requiredInput = (UnityEngine.Random.value > 0.2f) ? "DODGE" : "PARRY";
-        //choiceText.text = enemyUnit.unitName + " prepares to strike! Quick, " + requiredInput + "!!!";
+        bool isDead = false;
+        
+        StartCoroutine(DodgePanelIntro());
+         
         enemyAnimator.SetTrigger("isAttacking");
-        
-        if(requiredInput == "DODGE")
-        {
-            StartCoroutine(DodgePanelIntro());
-        }
-
-        if(requiredInput == "PARRY")
-        {
-            StartCoroutine(ParryPanelIntro());
-        }
-       
-        
-        isQTEActive = true;
-
-        //hasDodged = false;
-
-        playerBufferInput = "";
-        
-        qteSuccess = false;
-        
-        float qteTimeWindow = .6f; 
-        float timer = 0f;
-
-    
-        while (timer < qteTimeWindow && !qteSuccess)
-        {
-            timer += Time.deltaTime;
-             if (!string.IsNullOrEmpty(playerBufferInput))
-        {
-            
-            if (playerBufferInput == requiredInput)
-            {
-                qteSuccess = true;
-                break; 
-            }
-            else
-            {
-                
-                qteSuccess = false;
-                break; 
-            }
-        }
-            yield return null; 
-        }
-
-        
-        isQTEActive = false;
-        
-
-        
         int enemyBaseDamage = enemyUnit.dmg;
         int enemyRolledDamage = UnityEngine.Random.Range(enemyBaseDamage - 2, enemyBaseDamage + 3);
         enemyRolledDamage = Mathf.Max(1, enemyRolledDamage);
+        
+        float timer = 0f;
+        qteStartTime = Time.time;
+        
+        while (timer < QTE_TIME_WINDOW && defenseOutcome == 0)
+    {
+        timer += Time.deltaTime;
+        yield return null; 
+    }
+
+
+    
+       if (defenseOutcome == 2) 
+    {
+        if (canvasGroup != null) canvasGroup.alpha = 1f; 
+        checkMark.SetActive(true);
+        StartCoroutine(CheckMarkIntro());
+        StartCoroutine(ParryPanelIntro());
+
+        int parryCounterDamage = Mathf.RoundToInt(playerUnit.dmg * .5f); 
+        enemyUnit.TakeDamage(parryCounterDamage);
+        enemyHUD.SetHP(enemyUnit.currentHP);
+        
+        Vector3 counterTextSpawnPos = enemyGO.transform.position + Vector3.up * 2f;
+        GameObject dmgTextInstance = Instantiate(damageTextPrefab, counterTextSpawnPos, Quaternion.identity);
+        dmgTextInstance.GetComponent<FloatingDamageText>().Setup("-" + parryCounterDamage);
+
+        yield return new WaitForSeconds(1f);
+
+        if (canvasGroup != null) canvasGroup.DOFade(0f, 0.3f);
+    }
+        else if (defenseOutcome == 1) 
+        {
+        if (canvasGroup != null) canvasGroup.alpha = 1f;
+        checkMark.SetActive(true);
+        StartCoroutine(CheckMarkIntro());
+        Debug.Log("Player safely dodged the attack.");
+        yield return new WaitForSeconds(1f);
+        if (canvasGroup != null) canvasGroup.DOFade(0f, 0.3f);
+        }
+
+        
+    
+        
+
+        
+        
 
        
 
-        bool isDead = false;
+        
 
-        if (qteSuccess)
+        /*if (qteSuccess)
         {
                 checkMark.SetActive(true);
                 canvasGroup.DOFade(1, .5f);
@@ -288,7 +299,7 @@ public class BattleHandler : MonoBehaviour
                 yield return new WaitForSeconds(1f);
                 canvasGroup.DOFade(0, .5f);
            
-           if (requiredInput == "PARRY")
+          /* if (requiredInput == "PARRY")
             {
                 int parriedDamage = Mathf.RoundToInt(enemyUnit.dmg * 0.3f); 
                 
@@ -308,7 +319,7 @@ public class BattleHandler : MonoBehaviour
 
                 
             }
-        }
+        }*/
       
            
              else // QTE Failed: Enemy hits the player
@@ -423,12 +434,12 @@ public class BattleHandler : MonoBehaviour
 
     IEnumerator ParryPanelIntro()
     {
-        parryPanelRect.DOAnchorPosY(middlePosY, tweenDuration);
+        parryPanelRect.DOAnchorPosY(yourMovePosY, tweenDuration);
 
         yield return new WaitForSeconds(2f);
 
         parryPanelRect.DOAnchorPosY(topPosY, tweenDuration);
-    }
+    } 
     IEnumerator YourMovePanelIntro()
     {
         hasAttacked = true;
@@ -444,18 +455,39 @@ public class BattleHandler : MonoBehaviour
 
     IEnumerator CheckMarkIntro()
     {
+        //canvasGroup.DOFade(1, .5f);
         checkPosition.DOPunchAnchorPos(checkPosition.position, punchDuration, punchVibrato, punchElasticity);
+        //canvasGroup.DOFade(0, .5f);
         yield return new WaitForSeconds(2f);
+        
         checkMark.SetActive(false);
 
     }
 
     IEnumerator XMarkIntro()
     {
+        //canvasGroup.DOFade(1, .5f);
         xMarkPosition.DOPunchAnchorPos(xMarkPosition.position, punchDuration, punchVibrato, punchElasticity);
+        //canvasGroup.DOFade(0, .5f);
         yield return new WaitForSeconds(2f);
         xMark.SetActive(false);
     }
+    private void SetActionButtonSprite(Sprite newSprite)
+{
+    if (actionButtonImage != null && actionButtonImage.transition == UnityEngine.UI.Button.Transition.SpriteSwap)
+    {
+        // 1. Fetch a copy of the button's current transition state struct
+        UnityEngine.UI.SpriteState stateCopy = actionButtonImage.spriteState;
+        
+        // 2. Overwrite ONLY the hover graphic property
+        stateCopy.highlightedSprite = newSprite;
+        stateCopy.selectedSprite = newSprite;
+        
+        // 3. Inject the modified struct back into the button component
+        actionButtonImage.spriteState = stateCopy;
+        
+    }
+}
     /*IEnumerator dmgTextIntro()
     {
          choiceText.transform.SetParent(enemyTransform, true);
@@ -480,13 +512,58 @@ public class BattleHandler : MonoBehaviour
     {
         
 
+    // Update the button graphic to your attack artwork
+        SetActionButtonSprite(attackSprite); 
+
         StartCoroutine(YourMovePanelIntro());
         
         //choiceText.text = "make your move:";
         
     }
 
-    public void OnAttackButton()
+    public void OnActionButtonClicked()
+{
+    // Context A: It is your turn -> Button behaves as an Attack
+    if (state == BattleState.PLAYERTURN && !hasAttacked)
+    {
+        hasAttacked = true;
+        playerAnimator.SetTrigger("isAttacking"); 
+        StartCoroutine(PlayerAttack());
+    }
+    
+    
+    
+        // Sets the buffer string your QTE coroutine while-loop is listening for
+         else if (state == BattleState.ENEMYTURN && isQTEActive)
+    {
+        // Stop accepting input immediately after the first click
+        isQTEActive = false; 
+
+        float timeElapsed = Time.time - qteStartTime; 
+        float normalizedTime = timeElapsed / QTE_TIME_WINDOW; // Based on your 0.6s QTE window
+
+        // Check for frame-precise Parry window (e.g., between 40% and 55% of the animation)
+        if (normalizedTime >= parryWindowStartNormalized && normalizedTime <= parryWindowEndNormalized)
+        {
+            defenseOutcome = 2; // PARRY
+            playerAnimator.SetTrigger("isParrying"); 
+            Debug.Log($"PERFECT PARRY! Timed at {normalizedTime:P0}");
+        }
+        else
+        {
+            defenseOutcome = 1; // STANDARD DODGE
+            playerAnimator.SetTrigger("isDodging");
+            Debug.Log($"Safe Dodge. Timed at {normalizedTime:P0}");
+        }
+    }
+     if (UnityEngine.EventSystems.EventSystem.current != null)
+    {
+        UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
+    }
+        }
+    
+
+   /*public void OnAttackButton()
     {
          if (state != BattleState.PLAYERTURN || hasAttacked)
         return;
@@ -525,7 +602,7 @@ public class BattleHandler : MonoBehaviour
         {
             qteSuccess = true;
         }
-*/ if (isQTEActive){
+if (isQTEActive){
         playerBufferInput = "DODGE";
 }
    if (playerAnimator != null)
@@ -534,10 +611,10 @@ public class BattleHandler : MonoBehaviour
     }
             
         //StartCoroutine(PlayerDodge());
-    }
+    } */
 
     
-    IEnumerator ShowTemporaryWarning()
+   /* IEnumerator ShowTemporaryWarning()
     {
       //choiceText.text = enemyUnit.unitName + " is not attacking";
         yield return new WaitForSeconds(2f);
@@ -560,9 +637,9 @@ public class BattleHandler : MonoBehaviour
             qteSuccess = true;
         }
        
-        //StartCoroutine(PlayerParry()); */
+        //StartCoroutine(PlayerParry()); 
          if (isQTEActive){playerBufferInput = "PARRY";}
-    }
+    } */
      public void OnQuitButton()
     {
            // If running in the Unity Editor
