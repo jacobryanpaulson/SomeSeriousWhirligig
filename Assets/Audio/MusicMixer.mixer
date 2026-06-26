@@ -1,5 +1,19 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!245 &-6566078543118947344
+AudioMixerSnapshotController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ClickerSnap
+  m_AudioMixer: {fileID: 24100000}
+  m_SnapshotID: 9dfd6df6defb1f341af0165acb2c4f00
+  m_FloatValues:
+    bc00d9e243546c54fadeac6466f44ba3: -80
+    b8a165f6daaacc749819a7aaaea36f77: -80
+    4cf711da660e970478d125de08c0e2a5: -80
+  m_TransitionOverrides: {}
 --- !u!244 &-6423693176602227256
 AudioMixerEffectController:
   m_ObjectHideFlags: 3
@@ -74,6 +88,7 @@ AudioMixerController:
   - {fileID: 24500006}
   - {fileID: 5984597145223389714}
   - {fileID: 8112226927226366466}
+  - {fileID: -6566078543118947344}
   m_StartSnapshot: {fileID: 24500006}
   m_SuspendThreshold: -80
   m_EnableSuspend: 1
@@ -85,9 +100,10 @@ AudioMixerController:
     - 015f8e45c7d84034a8e3d91071b5ae0c
     - 91bdf3b3c0cc8e545899dc2bfe47de83
     - 305ecff435f8bcd4a9e962a3f44ab724
+    - 72561ebe864ea57469f25a2076911ff7
     name: View
   m_CurrentViewIndex: 0
-  m_TargetSnapshot: {fileID: 5984597145223389714}
+  m_TargetSnapshot: {fileID: -6566078543118947344}
 --- !u!243 &24300002
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
@@ -101,6 +117,7 @@ AudioMixerGroupController:
   - {fileID: -2418712542828186383}
   - {fileID: 5698324070188655904}
   - {fileID: 3819776427059804612}
+  - {fileID: 7829639642389857264}
   m_Volume: 285d4cd1fdf74c94594f0d07054aeeea
   m_Pitch: 47be58e0c4c4d1c408070229e6ee27c2
   m_Send: 00000000000000000000000000000000
@@ -137,6 +154,7 @@ AudioMixerSnapshotController:
     bc00d9e243546c54fadeac6466f44ba3: -0.002441872
     b8a165f6daaacc749819a7aaaea36f77: -80
     4cf711da660e970478d125de08c0e2a5: -80
+    8f8013cd0e6ec5c449fd8d5ae991b614: -80
   m_TransitionOverrides: {}
 --- !u!243 &3819776427059804612
 AudioMixerGroupController:
@@ -157,6 +175,20 @@ AudioMixerGroupController:
   m_Mute: 0
   m_Solo: 0
   m_BypassEffects: 0
+--- !u!244 &4540043288238633713
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: e266f2b24fee6af43bed672bdec24da9
+  m_EffectName: Attenuation
+  m_MixLevel: 12f703649d4f7674699273f25796e39a
+  m_Parameters: []
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!243 &5698324070188655904
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
@@ -189,7 +221,27 @@ AudioMixerSnapshotController:
     bc00d9e243546c54fadeac6466f44ba3: -80
     b8a165f6daaacc749819a7aaaea36f77: -80
     4cf711da660e970478d125de08c0e2a5: 4.648096
+    8f8013cd0e6ec5c449fd8d5ae991b614: -80
   m_TransitionOverrides: {}
+--- !u!243 &7829639642389857264
+AudioMixerGroupController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ClickerScene
+  m_AudioMixer: {fileID: 24100000}
+  m_GroupID: 72561ebe864ea57469f25a2076911ff7
+  m_Children: []
+  m_Volume: 8f8013cd0e6ec5c449fd8d5ae991b614
+  m_Pitch: 583535d49818edc4dbb38adf601aa95d
+  m_Send: 00000000000000000000000000000000
+  m_Effects:
+  - {fileID: 4540043288238633713}
+  m_UserColorIndex: 0
+  m_Mute: 0
+  m_Solo: 0
+  m_BypassEffects: 0
 --- !u!245 &8112226927226366466
 AudioMixerSnapshotController:
   m_ObjectHideFlags: 0
@@ -202,4 +254,5 @@ AudioMixerSnapshotController:
   m_FloatValues:
     bc00d9e243546c54fadeac6466f44ba3: -80
     4cf711da660e970478d125de08c0e2a5: -80
+    8f8013cd0e6ec5c449fd8d5ae991b614: -80
   m_TransitionOverrides: {}

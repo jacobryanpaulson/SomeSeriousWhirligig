@@ -8,6 +8,7 @@ public class SceneSnapshotManager : MonoBehaviour
     public AudioMixerSnapshot startSnapshot;
     public AudioMixerSnapshot shopSnapshot;
     public AudioMixerSnapshot battleSnapshot;
+    public AudioMixerSnapshot clickerSnapshot;
 
     void OnEnable()
     {
@@ -26,7 +27,7 @@ public class SceneSnapshotManager : MonoBehaviour
         
         if (scene.name == "ShopScene")
         {
-            shopSnapshot.TransitionTo(.5f); 
+            shopSnapshot.TransitionTo(1.5f); 
         }
         if (scene.name == "BeybladeScene")
         {
@@ -35,6 +36,10 @@ public class SceneSnapshotManager : MonoBehaviour
         if(scene.name == "StartMenuScene")
         {
             startSnapshot.TransitionTo(1.0f);
+        }
+        if (scene.name == "ClickerScene")
+        {
+            clickerSnapshot.TransitionTo(.5f);
         }
     }
 }

@@ -31,6 +31,7 @@ public class ClickerManager : MonoBehaviour
                 DisplayTime(timeRemaining);
 
             }
+            
             else
             {
                 timeRemaining = 0;

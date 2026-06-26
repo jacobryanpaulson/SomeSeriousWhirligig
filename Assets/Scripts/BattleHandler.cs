@@ -7,6 +7,8 @@ using NUnit.Framework;
 using DG.Tweening;
 using UnityEngine.UIElements;
 using JetBrains.Annotations;
+using Unity.VisualScripting;
+using UnityEngine.Scripting;
 
 
 public enum BattleState{ START, PLAYERTURN, ENEMYTURN, WON, LOST}
@@ -17,7 +19,7 @@ public class BattleHandler : MonoBehaviour
 [SerializeField] private UnityEngine.UI.Button actionButtonImage; // Drag your Button component here
 [SerializeField] private Sprite attackSprite;                   // Your Attack graphic artwork
 [SerializeField] private Sprite defendSprite; 
-[SerializeField] private float parryWindowStartNormalized = 0.4f;
+[SerializeField] private float parryWindowStartNormalized = 0.40f;
 [SerializeField] private float parryWindowEndNormalized = 0.55f;         
     [SerializeField] GameObject dodgePanel;
     [SerializeField] GameObject parryPanel;
@@ -53,9 +55,8 @@ public class BattleHandler : MonoBehaviour
 
  // public TextMeshProUGUI choiceText;
      private bool isQTEActive = false;
-    private string requiredInput = ""; // Will be "DODGE" or "PARRY"
-    private string playerBufferInput = "";
-    private bool qteSuccess = false;
+    
+    
     public float hitChance = 75f;
     public GameObject slotsCanvas;
     public Transform battleOrbitCenter;
@@ -67,7 +68,9 @@ public class BattleHandler : MonoBehaviour
     public Transform enemyTransform;
     private int defenseOutcome = 0;
     private float qteStartTime;
-    private const float QTE_TIME_WINDOW = 0.6f;
+    private const float QTE_TIME_WINDOW = 0.45f;
+    [SerializeField] TriggerSound triggerSound;
+    public AudioSource enemyAudio;
     
     
     //private bool hasDodged;
@@ -95,6 +98,7 @@ public class BattleHandler : MonoBehaviour
         enemyUnit = enemyGO.GetComponent<Unit>();
         enemyGO.transform.SetParent(battleOrbitCenter, true);
         playerUnit.currentHP = ClickerManager.finalClicksToHealth;
+        enemyAudio = enemyGO.GetComponent<AudioSource>();
 
         int currentRound = 1;
         
@@ -170,6 +174,8 @@ public class BattleHandler : MonoBehaviour
 
         if (randomRoll <= hitChance)
         {
+            enemyAnimator.SetTrigger("isDamaged");
+            triggerSound.HitSound();
             int baseDamage = playerUnit.dmg;
             int rolledDamage = UnityEngine.Random.Range(baseDamage - 6, baseDamage + 10);
         
@@ -198,7 +204,7 @@ public class BattleHandler : MonoBehaviour
         }
       else
         {
-           
+           triggerSound.DodgeSound();
             missedTextInstance.DOFade(1, .5f);
             enemyAnimator.SetTrigger("isDodging");
 
@@ -251,6 +257,10 @@ public class BattleHandler : MonoBehaviour
     
        if (defenseOutcome == 2) 
     {
+        enemyAnimator.SetTrigger("isDamaged");
+        playerAnimator.SetTrigger("isParrying");
+        triggerSound.ParrySound();
+
         if (canvasGroup != null) canvasGroup.alpha = 1f; 
         checkMark.SetActive(true);
         StartCoroutine(CheckMarkIntro());
@@ -264,12 +274,30 @@ public class BattleHandler : MonoBehaviour
         GameObject dmgTextInstance = Instantiate(damageTextPrefab, counterTextSpawnPos, Quaternion.identity);
         dmgTextInstance.GetComponent<FloatingDamageText>().Setup("-" + parryCounterDamage);
 
+          bool enemyKilledByParry = false;
+        if (enemyUnit.currentHP <= 0)
+        {
+            enemyKilledByParry = true;
+        }
+
+        if (enemyKilledByParry)
+            {
+                checkMark.SetActive(false);
+                xMark.SetActive(false);
+
+                state = BattleState.WON;
+                StartCoroutine(EndBattle());
+                yield break;
+            }
+
         yield return new WaitForSeconds(1f);
 
         if (canvasGroup != null) canvasGroup.DOFade(0f, 0.3f);
     }
         else if (defenseOutcome == 1) 
         {
+           
+            triggerSound.DodgeSound();
         if (canvasGroup != null) canvasGroup.alpha = 1f;
         checkMark.SetActive(true);
         StartCoroutine(CheckMarkIntro());
@@ -371,12 +399,14 @@ public class BattleHandler : MonoBehaviour
     {
         if(state == BattleState.WON)
         {
-             enemyGO.transform.SetParent(enemySpawn, true);
-             if (playerAnimator != null)
-    {
+            triggerSound.VictorySound();
+            enemyGO.transform.SetParent(enemySpawn, true);
+            if (playerAnimator != null)
+            {
+                enemyAudio.Stop();
+                enemyAnimator.SetTrigger("isDefeated");
         
-        enemyAnimator.SetTrigger("isDefeated");
-    }
+            }
            //hoiceText.text = "You beat your foe!";
              yield return new WaitForSeconds(5f);
             
@@ -395,6 +425,7 @@ public class BattleHandler : MonoBehaviour
         {
             if (playerAnimator != null)
              {
+                triggerSound.DefeatSound();
                 playerGO.transform.SetParent(battleOrbitCenter, false);
 
                 playerAnimator.SetTrigger("isDefeated");
@@ -426,7 +457,7 @@ public class BattleHandler : MonoBehaviour
     {
         dodgePanelRect.DOAnchorPosY(middlePosY, tweenDuration);
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1.5f);
 
         dodgePanelRect.DOAnchorPosY(topPosY, tweenDuration);
     }
@@ -443,12 +474,14 @@ public class BattleHandler : MonoBehaviour
     IEnumerator YourMovePanelIntro()
     {
         hasAttacked = true;
+        triggerSound.whooshSound();
 
         yourMovePanelRect.DOAnchorPosY(yourMovePosY, tweenDuration);
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
 
         yourMovePanelRect.DOAnchorPosY(topPosY, tweenDuration);
+        triggerSound.wooshySound();
 
         hasAttacked = false;
     }
