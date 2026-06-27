@@ -68,7 +68,7 @@ public class BattleHandler : MonoBehaviour
     public Transform enemyTransform;
     private int defenseOutcome = 0;
     private float qteStartTime;
-    private const float QTE_TIME_WINDOW = 0.45f;
+    private const float QTE_TIME_WINDOW = 0.4f;
     [SerializeField] TriggerSound triggerSound;
     public AudioSource enemyAudio;
     
@@ -177,7 +177,7 @@ public class BattleHandler : MonoBehaviour
             enemyAnimator.SetTrigger("isDamaged");
             triggerSound.HitSound();
             int baseDamage = playerUnit.dmg;
-            int rolledDamage = UnityEngine.Random.Range(baseDamage - 6, baseDamage + 10);
+            int rolledDamage = UnityEngine.Random.Range(baseDamage - 4, baseDamage + 6);
         
         
             rolledDamage = Mathf.Max(1, rolledDamage);
@@ -367,10 +367,10 @@ public class BattleHandler : MonoBehaviour
                     GameObject dmgTextInstance = Instantiate(damageTextPrefab, spawnPos, Quaternion.identity);
                 
                     FloatingDamageText textScript = dmgTextInstance.GetComponent<FloatingDamageText>();
-                    if (textScript != null) textScript.Setup("-" + enemyUnit.dmg);
+                    if (textScript != null) textScript.Setup("-" + enemyRolledDamage);
                 }
 
-            playerUnit.currentHP -= enemyRolledDamage;
+            //playerUnit.currentHP -= enemyRolledDamage;
             if (playerHUD != null) playerHUD.SetHP(playerUnit.currentHP);
 
             playerUnit.TakeDamage(enemyRolledDamage);

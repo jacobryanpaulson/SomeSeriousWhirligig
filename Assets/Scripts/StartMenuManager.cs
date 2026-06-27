@@ -7,7 +7,7 @@ public class StartMenuManager : MonoBehaviour
    
     public void OnStartButton()
     {
-         SceneManager.LoadScene("ClickerScene");
+         SceneManager.LoadScene("TutorialScene");
     }
     
     public void OnQuitButton()
